@@ -16,7 +16,6 @@ void main(){
   }
 
   if (idProceso == 0) { // HIJO
-    printf("Soy el hijo y mi PID es %d \n",  getpid());
     signal (SIGUSR1, tratasenial);
     while (1)
       pause();
