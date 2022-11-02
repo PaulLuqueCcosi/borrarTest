@@ -3,9 +3,10 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 void tratasenial (int);
-void isCreatedHijo2 (int);
+void mostrarMensajeBienvenida();
 
 void main(){
   pid_t pidHijo1;
@@ -18,7 +19,6 @@ void main(){
     perror("No se puede lanzar proceso Hijo 2");
     exit(-1);
   }
-
 
   // hijo 2
   if (pidHijo2 == 0) { 
@@ -33,16 +33,17 @@ void main(){
     // hijo 3
     if(pidHijo2_1 == 0){ 
       printf("HIJO 3: PID = %d, PPID = %d\n", getpid(), getppid());
+      mostrarMensajeBienvenida();
       printf("HIJO 3: Soy el proceso hijo 3 y voy a finalizar \n");
       exit(0);
     }
 
     // hijo 2
-    if(pidHijo2_1 >  0){ 
-      printf("HIJO 2: mi PID es %d y el de mi padre es %d \n", getpid(), getppid());
-
-      printf("HIJO 2: Soy el proceso hijo 2 y voy a finalizar \n");
-      exit(0);
+    if(pidHijo2_1 >  0){
+      signal(SIGUSR1, tratasenial);
+      while(1){
+	pause();
+      }
     }
   }
   
@@ -68,10 +69,6 @@ void main(){
 	printf("HIJO 1: envio señal al hijo 2 \n");
 	kill(pidHijo2, SIGUSR1);
       }
-
-      sleep(2);
-      printf("HIJO 1: Soy el hijo 1 y vot a finalizar \n");
-      exit(0);
     }
 
     // padre
@@ -79,19 +76,41 @@ void main(){
       printf("PADRE: esperando a que finalicen los hijos \n");
       wait();
       wait();
-
-      printf("PADRE: voy a finalizar \n");
     }
-    // fin padre
-
   }
-
-  // fin padre
 }
 void tratasenial (int nsenial) {
-  printf ("Recibida la señal del Padre\n");
+
+  printf("HIJO 2: senal recibida, PID = %d, PPID = %d\n", getpid(), getppid());
 }
 
-void isCreatedHijo2 (int nsenial) {
-  printf ("Hijo 2 creado\n");
+void mostrarMensajeBienvenida(){
+  printf("**********************************************\n");
+  printf("Bienvenido usuario %s \n", getlogin());
+  time_t now;
+
+  // Obtener la hora actual
+  // time() devuelve la hora actual del sistema como un valor `time_t`
+  time(&now);
+
+  struct tm *local = localtime(&now);
+  int hours = local->tm_hour;         // obtener horas desde la medianoche (0-23)
+  int minutes = local->tm_min;        // obtener minutos pasados después de la hora (0-59)
+  int seconds = local->tm_sec;        // obtener segundos pasados después de un minuto (0-59)
+
+  int day = local->tm_mday;            // obtener el día del mes (1 a 31)
+  int month = local->tm_mon + 1;      // obtener el mes del año (0 a 11)
+  int year = local->tm_year + 1900;   // obtener el año desde 1900
+
+  // imprime la hora local
+  if (hours < 12) {    // antes del mediodia
+    printf("La hora es: %02d:%02d:%02d am\n", hours, minutes, seconds);
+  }
+  else {    // Después de mediodía
+    printf("La hora es: %02d:%02d:%02d pm\n", hours - 12, minutes, seconds);
+  }
+  // imprime la fecha actual
+  printf("La fecha es: %02d/%02d/%d\n", day, month, year);
+  printf("**********************************************\n");
 }
+
